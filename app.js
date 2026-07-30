@@ -1,66 +1,120 @@
 
-const D=window.APP_DATA,$=s=>document.querySelector(s);
-let st=JSON.parse(localStorage.getItem('e14state')||'{"view":"home","week":1,"day":0,"done":{},"sims":{}}');
-let installPrompt=null;
-const save=()=>localStorage.setItem('e14state',JSON.stringify(st));
-const key=(w,d)=>`${w}-${d}`;
-const doneCount=()=>Object.values(st.done).filter(Boolean).length;
-const nextLesson=()=>{for(let w=1;w<=14;w++)for(let d=0;d<7;d++)if(!st.done[key(w,d)])return[w,d];return[14,6]};
-const subjDone=s=>{let n=0;D.weeks.forEach(w=>w.days.forEach(d=>{if(d.subject===s&&st.done[key(w.number,w.days.indexOf(d))])n++}));return n};
-function toast(t){const x=$("#toast");x.textContent=t;x.classList.add("show");setTimeout(()=>x.classList.remove("show"),1800)}
-function nav(active){return `<nav class="bottom">${[['home','⌂','Início'],['weeks','▦','Semanas'],['sims','✓','Simulados'],['progress','◔','Progresso']].map(x=>`<button class="navbtn ${active===x[0]?'active':''}" onclick="go('${x[0]}')"><b>${x[1]}</b>${x[2]}</button>`).join('')}</nav>`}
-function topbar(title,back=false){return `<header class="top">${back?`<button class="iconbtn" onclick="historyBack()">←</button>`:''}<h1>${title}</h1><button class="iconbtn" onclick="showInstall()">＋</button></header>`}
-function layout(body,active='home',title='ENEM 14',back=false){$("#app").innerHTML=`<div class="shell">${topbar(title,back)}<main class="content">${body}</main>${nav(active)}</div>`}
-function go(v){st.view=v;save();render()}
-function historyBack(){if(st.view==='lesson')st.view='week';else if(st.view==='week')st.view='weeks';else if(st.view==='subjectSims')st.view='sims';else if(st.view==='quiz')st.view='subjectSims';else st.view='home';save();render()}
-function home(){
- const n=nextLesson(),pct=Math.round(doneCount()/98*100), d=D.weeks[n[0]-1].days[n[1]];
- layout(`<section class="hero"><span class="eyebrow" style="color:#bcd0ff">PLANO DE 14 SEMANAS</span><h2>Estude uma hora por dia.</h2><p>Abra, estude, conclua e continue. Todo o plano foi feito primeiro para celular.</p><div class="progress"><i style="width:${pct}%"></i></div><p style="font-size:12px">${doneCount()} de 98 dias concluídos</p><button class="btn primary" onclick="openLesson(${n[0]},${n[1]})">Continuar: ${d.subject}</button></section>
- <section class="section"><span class="eyebrow">HOJE</span><h3>${d.topic}</h3><button class="card day-card" onclick="openLesson(${n[0]},${n[1]})"><span class="badge" style="background:${d.color}">${d.icon}</span><span><h4>${d.subject}</h4><span class="meta">Semana ${n[0]} • ${d.day} • 1 hora</span></span><span class="check">›</span></button></section>
- <section class="install"><b>Use como aplicativo</b><p class="meta">Adicione à tela inicial do iPhone ou Android para abrir em tela cheia.</p><button class="btn ghost" onclick="showInstall()">Como instalar</button></section>`,'home');
-}
-function weeks(){
- layout(`<span class="eyebrow">CRONOGRAMA</span><h2 style="margin:6px 0 16px">14 semanas</h2><div class="week-list">${D.weeks.map(w=>{let c=w.days.filter((_,i)=>st.done[key(w.number,i)]).length;return`<button class="card week-card" onclick="openWeek(${w.number})"><span class="num">SEMANA ${String(w.number).padStart(2,'0')}</span><h4>${c===7?'Semana concluída':'Plano semanal'}</h4><div class="progress"><i style="width:${c/7*100}%"></i></div><div class="row between" style="margin-top:9px"><span class="meta">${c}/7 dias</span><span class="meta">Abrir ›</span></div></button>`}).join('')}</div>`,'weeks','Semanas');
-}
-function openWeek(w){st.week=w;st.view='week';save();render()}
-function week(){
- const w=D.weeks[st.week-1];
- layout(`<span class="eyebrow">SEMANA ${st.week} DE 14</span><h2 style="margin:6px 0 16px">Escolha o dia</h2><div class="week-list">${w.days.map((d,i)=>`<button class="card day-card ${st.done[key(st.week,i)]?'done':''}" onclick="openLesson(${st.week},${i})"><span class="badge" style="background:${d.color}">${d.icon}</span><span><h4>${d.day} • ${d.subject}</h4><span class="meta">${d.topic} • 1 hora</span></span><span class="check">${st.done[key(st.week,i)]?'✓':'›'}</span></button>`).join('')}</div>`,'weeks',`Semana ${st.week}`,true)
-}
-function openLesson(w,d){st.week=w;st.day=d;st.view='lesson';save();render()}
-function lesson(){
- const d=D.weeks[st.week-1].days[st.day],done=!!st.done[key(st.week,st.day)];
- layout(`<article class="lesson"><header class="lesson-head" style="background:linear-gradient(145deg,${d.color},#0b1739)"><span class="badge">${d.icon}</span><h2>${d.subject}</h2><p>${d.day} • Semana ${st.week}</p></header><div class="lesson-body"><span class="time-pill">◷ 1 hora de estudo</span><h2 style="font-size:24px;margin:20px 0 8px">${d.topic}</h2><div class="study-point">${d.study[0]}</div><div class="study-point">${d.study[1]}</div><a class="video" href="${d.video}" target="_blank" rel="noopener"><span class="play">▶</span><span><b>Assistir videoaula</b><small>${d.channel} • abre no YouTube</small></span></a><div class="lesson-actions"><button class="btn ${done?'ghost':'primary'}" onclick="toggleDone()">${done?'✓ Estudo concluído':'Marcar estudo como concluído'}</button><button class="btn ghost" onclick="nextDay()">Próximo dia →</button></div></div></article>`,'weeks',d.topic,true)
-}
-function toggleDone(){st.done[key(st.week,st.day)]=!st.done[key(st.week,st.day)];save();toast(st.done[key(st.week,st.day)]?'Dia concluído':'Conclusão removida');render()}
-function nextDay(){let w=st.week,d=st.day+1;if(d>6){d=0;w=Math.min(14,w+1)}openLesson(w,d)}
-function sims(){
- layout(`<span class="eyebrow">PRÁTICA</span><h2 style="margin:6px 0 8px">Simulados por matéria</h2><p class="meta" style="line-height:1.55;margin-bottom:18px">Cada matéria tem 5 mini-simulados. Eles são liberados depois que você conclui pelo menos um dia daquela matéria.</p><div class="subject-list">${D.subjects.map(s=>{const info=D.weeks[0].days.find(d=>d.subject===s),n=subjDone(s),un=n===0;return`<button class="card subject-card ${un?'locked':''}" onclick="${un?"toast('Conclua um estudo dessa matéria primeiro')":`openSubjectSims('${s}')`}"><span class="badge" style="background:${info.color}">${info.icon}</span><span style="flex:1"><b>${s}</b><div class="progress"><i style="width:${Math.min(n/14*100,100)}%"></i></div><span class="meta">${un?'Bloqueado':`${n} estudos concluídos`}</span></span><span>›</span></button>`}).join('')}</div>`,'sims','Simulados')
-}
-function openSubjectSims(s){st.subject=s;st.view='subjectSims';save();render()}
-function subjectSims(){
- const s=st.subject;
- layout(`<span class="eyebrow">${s.toUpperCase()}</span><h2 style="margin:6px 0 8px">5 mini-simulados</h2><p class="meta" style="margin-bottom:18px">Cada simulado tem 5 questões e resultado imediato.</p><div class="sim-list">${[1,2,3,4,5].map(i=>{const r=st.sims[`${s}-${i}`];return`<button class="card sim-card" onclick="startQuiz('${s}',${i})"><span class="round">${i}</span><span style="flex:1"><h4>Simulado ${i}</h4><span class="meta">${r!=null?`Melhor resultado: ${r}/5`:'5 questões • cerca de 8 min'}</span></span><span>›</span></button>`}).join('')}</div>`,'sims',s,true)
-}
-let quiz=null;
-function startQuiz(s,n){const pool=[...D.banks[s]];for(let i=pool.length-1;i>0;i--){const j=Math.floor((Math.sin((n+1)*(i+3))*10000%1+1)%1*(i+1));[pool[i],pool[j]]=[pool[j],pool[i]]}quiz={s,n,qs:pool.slice(0,5),at:0,answers:[]};st.view='quiz';render()}
-function quizView(){
- const q=quiz.qs[quiz.at],sel=quiz.answers[quiz.at];
- layout(`<div class="quiz-head"><span class="eyebrow">${quiz.s} • SIMULADO ${quiz.n}</span><h2>Questão ${quiz.at+1} de 5</h2><div class="progress"><i style="width:${(quiz.at+1)/5*100}%"></i></div></div><section class="question"><h3>${q[0]}</h3><div class="options">${q[1].map((o,i)=>`<button class="option ${sel===i?'selected':''}" onclick="answer(${i})"><b>${'ABCD'[i]}.</b> ${o}</button>`).join('')}</div></section><div class="quiz-footer"><button class="btn primary" onclick="advanceQuiz()">${quiz.at===4?'Finalizar simulado':'Próxima questão'}</button></div>`,'sims','Simulado',true)
-}
-function answer(i){quiz.answers[quiz.at]=i;render()}
-function advanceQuiz(){if(quiz.answers[quiz.at]==null)return toast('Escolha uma alternativa');if(quiz.at<4){quiz.at++;render()}else finishQuiz()}
-function finishQuiz(){let score=quiz.qs.reduce((n,q,i)=>n+(quiz.answers[i]===q[2]),0),k=`${quiz.s}-${quiz.n}`;st.sims[k]=Math.max(st.sims[k]||0,score);save();layout(`<section class="result"><span class="eyebrow">RESULTADO</span><div class="score">${score}/5</div><h2>${score>=4?'Excelente trabalho!':score>=3?'Bom caminho!':'Continue praticando'}</h2><p class="meta">Seu melhor resultado fica salvo neste aparelho.</p><button class="btn primary" onclick="openSubjectSims('${quiz.s}')">Voltar aos simulados</button><button class="btn ghost" style="margin-top:10px" onclick="startQuiz('${quiz.s}',${quiz.n})">Tentar novamente</button></section>`,'sims','Resultado',true)}
-function progress(){
- const pct=Math.round(doneCount()/98*100),simDone=Object.keys(st.sims).length;
- layout(`<section class="hero"><span class="eyebrow" style="color:#bcd0ff">SEU PROGRESSO</span><h2>${pct}% concluído</h2><div class="progress"><i style="width:${pct}%"></i></div><p>${doneCount()} de 98 estudos • ${simDone} simulados realizados</p></section><section class="section"><h3>Por matéria</h3><div class="subject-list">${D.subjects.map(s=>{let n=subjDone(s),info=D.weeks[0].days.find(d=>d.subject===s);return`<div class="card subject-card"><span class="badge" style="background:${info.color}">${info.icon}</span><span style="flex:1"><b>${s}</b><div class="progress"><i style="width:${n/14*100}%"></i></div><span class="meta">${n}/14 estudos</span></span></div>`}).join('')}</div></section>`,'progress','Progresso')
-}
-function showInstall(){
- const ios=/iphone|ipad|ipod/i.test(navigator.userAgent);
- if(installPrompt){installPrompt.prompt();installPrompt.userChoice.then(()=>installPrompt=null);return}
- $("#app").insertAdjacentHTML('beforeend',`<div class="modal" onclick="this.remove()"><div class="sheet" onclick="event.stopPropagation()"><span class="eyebrow">INSTALAR NO CELULAR</span><h2>${ios?'No iPhone':'No Android'}</h2><p>${ios?'No Safari, toque no botão Compartilhar e depois em “Adicionar à Tela de Início”.':'Abra o menu do navegador e toque em “Instalar aplicativo” ou “Adicionar à tela inicial”.'}</p><button class="btn primary" onclick="this.closest('.modal').remove()">Entendi</button></div></div>`)
-}
-function render(){if(st.view==='home')home();else if(st.view==='weeks')weeks();else if(st.view==='week')week();else if(st.view==='lesson')lesson();else if(st.view==='sims')sims();else if(st.view==='subjectSims')subjectSims();else if(st.view==='quiz')quizView();else if(st.view==='progress')progress();else home()}
-window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();installPrompt=e});
-if(('serviceWorker' in navigator) && location.protocol.startsWith('http')) window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js').catch(()=>{}));
-render();
+(() => {
+  "use strict";
+  const DATA = window.ENEM_DATA;
+  const KEY = "enem14_state_v3";
+  const defaultState = {done:{}, answers:{}, theme:"light", lastLesson:"w1d1", streakDays:[], route:"home"};
+  let state;
+  try { state = {...defaultState, ...(JSON.parse(localStorage.getItem(KEY)) || {})}; }
+  catch { state = {...defaultState}; }
+
+  const app = document.getElementById("app");
+  const icons = {Matemática:"∑",Linguagens:"Aa",Geografia:"◎",Redação:"✎",Química:"⚗",Biologia:"⌁",História:"⌛",Física:"⚡",Filosofia:"◈",Sociologia:"♟",Revisão:"↻",Simulado:"✓"};
+  const allDays = DATA.weeks.flatMap(w => w.days.map(d => ({...d, week:w.number})));
+
+  function save(){ localStorage.setItem(KEY, JSON.stringify(state)); document.documentElement.dataset.theme=state.theme; }
+  function completed(){ return Object.values(state.done).filter(Boolean).length; }
+  function pct(){ return Math.round(completed()/allDays.length*100); }
+  function weekPct(w){ const n=w.days.filter(d=>state.done[d.id]).length; return Math.round(n/w.days.length*100); }
+  function toast(text){ const t=document.createElement("div");t.className="toast";t.textContent=text;document.body.appendChild(t);setTimeout(()=>t.remove(),1700); }
+  function setRoute(route){ state.route=route; save(); render(); window.scrollTo({top:0,behavior:"smooth"}); }
+  function findDay(id){ return allDays.find(d=>d.id===id) || allDays[0]; }
+  function todayKey(){ return new Date().toISOString().slice(0,10); }
+  function streak(){
+    const s=new Set(state.streakDays||[]); let n=0,d=new Date();
+    while(s.has(d.toISOString().slice(0,10))){ n++; d.setDate(d.getDate()-1); }
+    return n;
+  }
+  function shell(content, active="home"){
+    return `<div class="app">
+      <header class="topbar"><div class="topbar-inner">
+        <div class="brand"><div class="brandmark">14</div><div><h1>ENEM 14</h1><small>Seu plano até a prova</small></div></div>
+        <button class="icon-btn" data-action="theme" aria-label="Alternar tema">${state.theme==="dark"?"☀":"☾"}</button>
+      </div></header>
+      <main class="shell">${content}</main>
+      <nav class="bottom-nav"><div class="bottom-inner">
+        <button class="nav-btn ${active==="home"?"active":""}" data-route="home"><span>⌂</span>Início</button>
+        <button class="nav-btn ${active==="weeks"?"active":""}" data-route="weeks"><span>▦</span>Semanas</button>
+        <button class="nav-btn ${active==="progress"?"active":""}" data-route="progress"><span>◔</span>Progresso</button>
+      </div></nav></div>`;
+  }
+  function home(){
+    const last=findDay(state.lastLesson);
+    const content=`<section class="hero">
+      <div class="eyebrow">Plano de 14 semanas</div><h2>Um passo por dia.<br>Até a aprovação.</h2>
+      <p>Continue de onde parou e acompanhe sua evolução em cada matéria.</p>
+      <div class="hero-meta"><span>${completed()} de ${allDays.length} aulas</span><b>${pct()}%</b></div>
+      <div class="progress-track"><div class="progress-fill" style="width:${pct()}%"></div></div>
+      <button class="primary-btn" data-lesson="${last.id}" style="margin-top:18px">▶ Continuar estudando</button>
+    </section>
+    <div class="section-title"><h2>Seu desempenho</h2></div>
+    <section class="stats">
+      <div class="card stat"><strong>${pct()}%</strong><span>concluído</span></div>
+      <div class="card stat"><strong>${streak()}</strong><span>dias seguidos</span></div>
+      <div class="card stat"><strong>${completed()}</strong><span>aulas feitas</span></div>
+    </section>
+    <div class="section-title"><h2>Próxima aula</h2><span>1 hora</span></div>
+    <article class="card day-card"><div class="subject-icon">${icons[last.subject]||"•"}</div><div class="day-copy"><b>${last.subject}</b><small>${last.topic}</small></div><button class="icon-btn" data-lesson="${last.id}">›</button></article>
+    <div class="section-title"><h2>Semanas recentes</h2><button class="back" data-route="weeks">Ver todas</button></div>
+    <div class="week-grid">${DATA.weeks.slice(0,2).map(weekCard).join("")}</div>`;
+    return shell(content,"home");
+  }
+  function weekCard(w){return `<article class="card week-card"><button data-week="${w.number}">
+    <div class="week-badge">${String(w.number).padStart(2,"0")}</div><div class="week-info"><h3>${w.title}</h3><p>${weekPct(w)}% concluído</p><div class="mini-track"><div class="mini-fill" style="width:${weekPct(w)}%"></div></div></div><div class="chev">›</div>
+  </button></article>`}
+  function weeksView(){return shell(`<div class="section-title"><h2>14 semanas</h2><span>${completed()}/${allDays.length} aulas</span></div><div class="week-grid">${DATA.weeks.map(weekCard).join("")}</div>`,"weeks")}
+  function weekView(n){
+    const w=DATA.weeks[n-1];
+    return shell(`<button class="back" data-route="weeks">‹ Voltar às semanas</button><div class="section-title"><h2>Semana ${String(w.number).padStart(2,"0")}</h2><span>${weekPct(w)}%</span></div><p style="color:var(--muted);margin-top:-5px">${w.title}</p><div class="day-list">${w.days.map(d=>`<article class="card day-card ${state.done[d.id]?"done":""}" data-lesson="${d.id}"><div class="subject-icon">${icons[d.subject]||"•"}</div><div class="day-copy"><b>${d.day} · ${d.subject}</b><small>${d.topic}</small></div><div class="status-dot">${state.done[d.id]?"✓":""}</div></article>`).join("")}</div>`,"weeks");
+  }
+  function lessonView(id){
+    const d=findDay(id); state.lastLesson=id; save();
+    const yq=encodeURIComponent(d.videoQuery);
+    return shell(`<button class="back" data-week="${d.week}">‹ Semana ${d.week}</button>
+      <section class="card lesson-head"><div class="eyebrow" style="color:var(--primary)">${d.day} · Semana ${d.week}</div><h2>${d.subject}</h2><p>${d.topic}</p><div class="pills"><span class="pill">⏱ ${d.duration}</span><span class="pill">5 simulados</span></div></section>
+      <section class="card lesson-section"><h3>🎯 Objetivo</h3><p>${d.objective}</p></section>
+      <section class="card lesson-section"><h3>📚 O que estudar</h3><ul class="study-list">${d.study.map(x=>`<li>${x}</li>`).join("")}</ul>
+      <a class="video-btn" target="_blank" rel="noopener" href="https://www.youtube.com/results?search_query=${yq}">▶ Abrir videoaula no YouTube</a></section>
+      <div class="section-title"><h2>Mini-simulados</h2><span>5 questões</span></div>
+      ${d.simulations.map((q,i)=>quiz(d,q,i)).join("")}
+      <button class="complete-btn ${state.done[d.id]?"done":""}" data-complete="${d.id}">${state.done[d.id]?"✓ Aula concluída":"Marcar aula como concluída"}</button>`,"weeks");
+  }
+  function quiz(d,q,i){
+    const key=d.id+"q"+i, picked=state.answers[key];
+    return `<article class="card quiz-card"><div class="eyebrow" style="color:var(--primary)">${q.title}</div><h3>Questão ${i+1}</h3><p>${q.question}</p><div class="options">${q.options.map((o,j)=>{
+      let c="option"; if(picked!==undefined){if(j===q.answer)c+=" correct";else if(j===picked)c+=" wrong";}
+      return `<button class="${c}" data-answer="${key}" data-choice="${j}" data-correct="${q.answer}" ${picked!==undefined?"disabled":""}>${String.fromCharCode(65+j)}. ${o}</button>`}).join("")}</div>${picked!==undefined?`<div class="quiz-result">${picked===q.answer?"✅ Resposta correta":"❌ Revise o conteúdo e tente aplicar a estratégia indicada."}</div>`:""}</article>`;
+  }
+  function progressView(){
+    const subjectMap={};
+    allDays.forEach(d=>{subjectMap[d.subject]??={total:0,done:0};subjectMap[d.subject].total++;if(state.done[d.id])subjectMap[d.subject].done++;});
+    return shell(`<div class="section-title"><h2>Seu progresso</h2><span>${pct()}% geral</span></div>
+      <section class="hero"><div class="eyebrow">Evolução geral</div><h2>${completed()} aulas concluídas</h2><p>Continue com constância. O progresso fica salvo neste aparelho.</p><div class="progress-track"><div class="progress-fill" style="width:${pct()}%"></div></div></section>
+      <div class="section-title"><h2>Por matéria</h2></div><div class="week-grid">${Object.entries(subjectMap).map(([s,v])=>{const p=Math.round(v.done/v.total*100);return `<article class="card week-card"><div class="week-badge">${icons[s]||"•"}</div><div class="week-info"><h3>${s}</h3><p>${v.done} de ${v.total}</p><div class="mini-track"><div class="mini-fill" style="width:${p}%"></div></div></div><b>${p}%</b></article>`}).join("")}</div>
+      <button class="secondary-btn" data-reset style="width:100%;margin-top:22px">Reiniciar progresso</button>`,"progress");
+  }
+  function render(){
+    document.documentElement.dataset.theme=state.theme;
+    const r=state.route||"home";
+    if(r.startsWith("week:")) app.innerHTML=weekView(Number(r.split(":")[1]));
+    else if(r.startsWith("lesson:")) app.innerHTML=lessonView(r.split(":")[1]);
+    else if(r==="weeks") app.innerHTML=weeksView();
+    else if(r==="progress") app.innerHTML=progressView();
+    else app.innerHTML=home();
+  }
+  document.addEventListener("click",e=>{
+    const route=e.target.closest("[data-route]"); if(route){setRoute(route.dataset.route);return}
+    const week=e.target.closest("[data-week]"); if(week){setRoute("week:"+week.dataset.week);return}
+    const lesson=e.target.closest("[data-lesson]"); if(lesson){setRoute("lesson:"+lesson.dataset.lesson);return}
+    const theme=e.target.closest("[data-action='theme']"); if(theme){state.theme=state.theme==="dark"?"light":"dark";save();render();return}
+    const answer=e.target.closest("[data-answer]"); if(answer){state.answers[answer.dataset.answer]=Number(answer.dataset.choice);save();render();return}
+    const complete=e.target.closest("[data-complete]"); if(complete){
+      const id=complete.dataset.complete; state.done[id]=!state.done[id];
+      if(state.done[id] && !state.streakDays.includes(todayKey())) state.streakDays.push(todayKey());
+      save(); toast(state.done[id]?"Aula concluída!":"Conclusão removida."); render(); return;
+    }
+    const reset=e.target.closest("[data-reset]"); if(reset && confirm("Deseja apagar todo o progresso deste aparelho?")){state={...defaultState,done:{},answers:{},streakDays:[]};save();render()}
+  });
+  render();
+  if("serviceWorker" in navigator && location.protocol.startsWith("http")) navigator.serviceWorker.register("./sw.js").catch(()=>{});
+})();

@@ -1,40 +1,10 @@
-VERSÃO CORRIGIDA
+ENEM 14 — versão premium mobile
 
-Para visualizar no PC agora:
-1. Extraia o ZIP.
-2. Abra a pasta enem14_mobile_pwa_corrigido.
-3. Dê dois cliques em index.html.
+Como atualizar no GitHub:
+1. Abra o repositório enem14.
+2. Selecione os arquivos antigos index.html, app.js, data.js, styles.css, manifest.webmanifest, sw.js e icon.svg e exclua-os.
+3. Envie todos os arquivos desta pasta para a raiz do repositório.
+4. Confirme as alterações.
+5. Aguarde 1 a 3 minutos e atualize o site.
 
-O modo de aplicativo instalável e offline é ativado quando o site é publicado em um endereço http/https.
-
-ENEM 14 — PWA mobile-first
-
-O aluno não deve baixar este ZIP. O ZIP é apenas para você publicar o site.
-
-COMO PUBLICAR SEM PROGRAMAÇÃO
-1. Crie uma conta gratuita no Netlify.
-2. Extraia esta pasta no computador.
-3. Arraste a pasta inteira para a área de publicação do Netlify.
-4. O Netlify fornecerá um link público.
-5. Envie somente esse link aos alunos.
-
-NO CELULAR
-- iPhone: abrir no Safari > Compartilhar > Adicionar à Tela de Início.
-- Android: abrir no Chrome > menu > Instalar aplicativo.
-
-RECURSOS
-- 14 semanas e 98 estudos.
-- Sessões de 1 hora.
-- Uma matéria por dia.
-- Links de videoaula.
-- Progresso salvo no aparelho.
-- 5 mini-simulados por matéria.
-- 35 mini-simulados no total.
-- Funciona offline depois do primeiro acesso.
-- PWA instalável.
-- Safe areas para iPhones com notch.
-- Botões grandes e navegação inferior para toque.
-
-LIMITAÇÃO DA OPÇÃO 1
-O progresso fica salvo apenas no navegador do aparelho. Não há login ou sincronização
-entre celulares. O link também pode ser compartilhado por um comprador.
+O progresso é salvo no navegador de cada aparelho.

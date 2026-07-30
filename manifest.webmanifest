@@ -3,12 +3,12 @@
   "short_name": "ENEM 14",
   "start_url": "./",
   "display": "standalone",
-  "background_color": "#f4f6fa",
-  "theme_color": "#0b1739",
-  "orientation": "portrait-primary",
+  "background_color": "#f4f7fc",
+  "theme_color": "#0b4bd4",
+  "description": "Plano ENEM em 14 semanas.",
   "icons": [
     {
-      "src": "icon.svg",
+      "src": "./icon.svg",
       "sizes": "any",
       "type": "image/svg+xml",
       "purpose": "any maskable"
