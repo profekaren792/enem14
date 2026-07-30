@@ -1,10 +1,18 @@
-ENEM 14 — versão premium mobile
+ENEM 14 — versão com Central de Redação
+
+Novidades:
+- Nova aba Redação na navegação.
+- Modelos autorais completos.
+- Dicas de estrutura e argumentação.
+- Banco de repertórios.
+- Temas para treino.
+- Botões para copiar temas e repertórios.
 
 Como atualizar no GitHub:
-1. Abra o repositório enem14.
-2. Selecione os arquivos antigos index.html, app.js, data.js, styles.css, manifest.webmanifest, sw.js e icon.svg e exclua-os.
-3. Envie todos os arquivos desta pasta para a raiz do repositório.
-4. Confirme as alterações.
-5. Aguarde 1 a 3 minutos e atualize o site.
+1. Extraia este ZIP.
+2. No repositório enem14, use Add file > Upload files.
+3. Envie todos os arquivos desta pasta e confirme a substituição.
+4. Aguarde 1 a 3 minutos.
+5. Abra o site e pressione Ctrl + F5.
 
-O progresso é salvo no navegador de cada aparelho.
+O endereço do site continua o mesmo.
